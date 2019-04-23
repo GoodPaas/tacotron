@@ -3,6 +3,12 @@
 An implementation of Tacotron speech synthesis in TensorFlow.
 
 
+### 中文语音合成 代码修改过程可以看看我的blog
+[基于Tacotron模型实现中文语音合成](https://xiaominfc.github.io/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/2019/04/23/%E5%9F%BA%E4%BA%8ETacotron%E6%A8%A1%E5%9E%8B%E5%AE%9E%E7%8E%B0%E4%B8%AD%E6%96%87%E8%AF%AD%E9%9F%B3%E5%90%88%E6%88%90.html)
+
+
+
+
 ### Audio Samples
 
   * **[Audio Samples](https://keithito.github.io/audio-samples/)** from models trained using this repo.
