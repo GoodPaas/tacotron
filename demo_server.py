@@ -3,7 +3,7 @@ import falcon
 from hparams import hparams, hparams_debug_string
 import os
 from synthesizer import Synthesizer
-
+from text.pinyinconvert import sentence_to_pinyin
 
 html_body = '''<html><title>Demo</title>
 <style>
@@ -19,6 +19,9 @@ button[disabled] {opacity: 0.4; cursor: default}
 </style>
 <body>
 <form>
+  <input id="zh_text" type="text" size="40" placeholder="Enter Text">
+  <button id="button_c" name="convert">Convert</button>
+  <br>
   <input id="text" type="text" size="40" placeholder="Enter Text">
   <button id="button" name="synthesize">Speak</button>
 </form>
@@ -26,7 +29,34 @@ button[disabled] {opacity: 0.4; cursor: default}
 <audio id="audio" controls autoplay hidden></audio>
 <script>
 function q(selector) {return document.querySelector(selector)}
-q('#text').focus()
+q('#zh_text').focus()
+
+q('#button_c').addEventListener('click', function(e) {
+  text = q('#zh_text').value.trim()
+  if (text) {
+    q('#message').textContent = 'Convert...'
+    q('#button_c').disabled = true
+    q('#audio').hidden = true
+    //synthesize(text)
+    fetch('/convert?text=' + encodeURIComponent(text), {cache: 'no-cache'})
+    .then(function(res) {
+      if (!res.ok) throw Error(res.statusText)
+      
+      return res.text()
+    }).then(function(text) {
+      q('#message').textContent = ''
+      q('#button_c').disabled = false
+      q('#text').value=text
+      }).catch(function(err) {
+      q('#message').textContent = 'Error: ' + err.message
+      q('#button_c').disabled = false
+    })
+
+  }
+  e.preventDefault()
+  return false
+})
+
 q('#button').addEventListener('click', function(e) {
   text = q('#text').value.trim()
   if (text) {
@@ -63,10 +93,19 @@ class UIResource:
     res.body = html_body
 
 
+class ConvertResource:
+  def on_get(self, req, res):
+    if not req.params.get('text'):
+      raise falcon.HTTPBadRequest()
+    res.content_type = 'text/html'
+    print(req.params)
+    res.body = sentence_to_pinyin(req.params.get('text'))
+
 class SynthesisResource:
   def on_get(self, req, res):
     if not req.params.get('text'):
       raise falcon.HTTPBadRequest()
+    print(req.params)
     res.data = synthesizer.synthesize(req.params.get('text'))
     res.content_type = 'audio/wav'
 
@@ -74,6 +113,7 @@ class SynthesisResource:
 synthesizer = Synthesizer()
 api = falcon.API()
 api.add_route('/synthesize', SynthesisResource())
+api.add_route('/convert', ConvertResource())
 api.add_route('/', UIResource())
 
 

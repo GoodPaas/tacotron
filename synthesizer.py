@@ -4,9 +4,10 @@ import tensorflow as tf
 from hparams import hparams
 from librosa import effects
 from models import create_model
-from text import text_to_sequence
+from text import text_to_sequence_zh
 from util import audio
 
+from text.pinyinconvert import sentence_to_pinyin
 
 class Synthesizer:
   def load(self, checkpoint_path, model_name='tacotron'):
@@ -26,8 +27,13 @@ class Synthesizer:
 
 
   def synthesize(self, text):
+    #print('synthesize:',text)
     cleaner_names = [x.strip() for x in hparams.cleaners.split(',')]
-    seq = text_to_sequence(text, cleaner_names)
+    #text=sentence_to_pinyin(text)
+    #print('text:',text)
+    #print('cleaner_names:',cleaner_names)
+    seq = text_to_sequence_zh(text, cleaner_names)
+    print(seq)
     feed_dict = {
       self.model.inputs: [np.asarray(seq, dtype=np.int32)],
       self.model.input_lengths: np.asarray([len(seq)], dtype=np.int32)
