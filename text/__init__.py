@@ -1,17 +1,48 @@
 import re
 from text import cleaners
 from text.symbols import symbols
-
+from text.symbols import pinyin_symbols
 
 # Mappings from symbol to numeric ID and vice versa:
 _symbol_to_id = {s: i for i, s in enumerate(symbols)}
 _id_to_symbol = {i: s for i, s in enumerate(symbols)}
 
+
+
+_psymbol_to_id = {s: i for i, s in enumerate(pinyin_symbols)}
+_id_to_psymbol= {i: s for i, s in enumerate(pinyin_symbols)}
+
+
 # Regular expression matching text enclosed in curly braces:
 _curly_re = re.compile(r'(.*?)\{(.+?)\}(.*)')
 
+print(_id_to_psymbol)
 
-def text_to_sequence(text, cleaner_names):
+def text_to_sequence(text, cleaner_names,lang='other'):
+  if lang is not 'zh':
+    return text_to_sequence_en(text, cleaner_names)
+  return text_to_sequence_zh(text, cleaner_names)
+  
+
+
+
+def text_to_sequence_zh(text, cleaner_names):
+  text = text.strip(' ')
+  sequence = []
+  parts = text.split(' ');
+  for i in range(0,len(parts)):
+    s = parts[i]
+    if s in _psymbol_to_id:
+      sequence.append(_psymbol_to_id[s])
+    else:
+      sequence.append(_psymbol_to_id['_'])
+
+  sequence.append(_psymbol_to_id['~'])
+
+  return sequence
+
+
+def text_to_sequence_en(text, cleaner_names):
   '''Converts a string of text to a sequence of IDs corresponding to the symbols in the text.
 
     The text can optionally have ARPAbet sequences enclosed in curly braces embedded
@@ -38,10 +69,30 @@ def text_to_sequence(text, cleaner_names):
 
   # Append EOS token
   sequence.append(_symbol_to_id['~'])
+  #print(sequence);
   return sequence
 
 
-def sequence_to_text(sequence):
+
+
+def sequence_to_text(sequence,lang='other'):
+  if lang is not 'zh':
+    return sequence_to_text_en(sequence)
+  return sequence_to_text_zh(sequence)
+
+
+
+def sequence_to_text_zh(sequence):
+  result = ''
+  for symbol_id in sequence:
+    if symbol_id in _id_to_psymbol:
+      if len(result) > 0:
+        result += ' '
+      result += _id_to_psymbol[symbol_id]
+  return result
+
+
+def sequence_to_text_en(sequence):
   '''Converts a sequence of IDs back to a string'''
   result = ''
   for symbol_id in sequence:
@@ -73,3 +124,13 @@ def _arpabet_to_sequence(text):
 
 def _should_keep_symbol(s):
   return s in _symbol_to_id and s is not '_' and s is not '~'
+
+
+def _psymbols_to_sequence(symbols):
+  return [_psymbol_to_id[s] for s in symbols if _should_keep_psymbol(s)]
+
+
+def _should_keep_psymbol(s):
+  return s in _psymbol_to_id and s is not '_' and s is not '~'
+
+
