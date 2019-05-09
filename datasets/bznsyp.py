@@ -22,7 +22,7 @@ from text.symbols import pinyin_dict
 def _format_pinyin(value):
     if len(value) == 1:
         return value.lower()
-    
+
     if value == 'IY1':
         return 'i_1'
     key = value[:-1]
