@@ -334,15 +334,23 @@ class PowerLoss(nn.Module):
         window = torch.hann_window(1200, periodic=True).to(device)
         freq = int(3000 / (self.sample_rate * 0.5) * 1025)
         # we use fft size 2048 for frequence lower than 3000hz
-        student_stft = torch.stft(student_hat, frame_length=1200, hop=300, fft_size=2048, window=window)[:, :, :freq, :]
-        y_stft = torch.stft(y, frame_length=1200, hop=300, fft_size=2048, window=window)[:, :, :freq, :]
+        if torch.__version__ < '1.0':
+            student_stft = torch.stft(student_hat, frame_length=1200, hop=300, fft_size=2048, window=window)[:, :, :freq, :]
+            y_stft = torch.stft(y, frame_length=1200, hop=300, fft_size=2048, window=window)[:, :, :freq, :]
+        else:
+            student_stft = torch.stft(student_hat, win_length=1200, hop_length=300, n_fft=2048, window=window)[:, :, :freq, :]
+            y_stft = torch.stft(y, win_length=1200, hop_length=300, n_fft=2048, window=window)[:, :, :freq, :]
         student_magnitude = self.get_magnitude(student_stft)
         y_magnitude = self.get_magnitude(y_stft)
         loss = torch.pow(torch.norm(torch.abs(student_magnitude) - torch.abs(y_magnitude), p=2, dim=1), 2)
 
         freq1 = int(3000 / (self.sample_rate * 0.5) * 257)
-        student_stft1 = torch.stft(student_hat, frame_length=1200, hop=300, fft_size=512, window=window)[:, :, freq1:, :]
-        y_stft1 = torch.stft(y, frame_length=1200, hop=300, fft_size=512, window=window)[:, :, freq1:, :]
+        if torch.__version__ < '1.0':
+            student_stft1 = torch.stft(student_hat, frame_length=1200, hop=300, fft_size=512, window=window)[:, :, freq1:, :]
+            y_stft1 = torch.stft(y, frame_length=1200, hop=300, fft_size=512, window=window)[:, :, freq1:, :]
+        else:
+            student_stft1 = torch.stft(student_hat, win_length=1200, hop_length=300, n_fft=2048, window=window)[:, :, freq1:, :]
+            y_stft1 = torch.stft(y, win_length=1200, hop_length=300, n_fft=2048, window=window)[:, :, freq1:, :]
         student_magnitude1 = self.get_magnitude(student_stft1)
         y_magnitude1 = self.get_magnitude(y_stft1)
         loss1 = torch.pow(torch.norm(torch.abs(student_magnitude1) - torch.abs(y_magnitude1), p=2, dim=1), 2)
