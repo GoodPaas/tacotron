@@ -28,8 +28,6 @@ def build_from_path(in_dir, out_dir, num_workers=1, tqdm=lambda x: x):
         futures.append(executor.submit(
                 partial(_process_utterance, out_dir, index, wav_path, text)))
         index += 1
-        if index > 100:
-            break
         line = f.readline()
     f.close()
     return [future.result() for future in tqdm(futures)]
